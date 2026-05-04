@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { client } from '../../sanity/client';
+import { client } from '../sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 
 // Tool pembangun URL gambar dari database Sanity
