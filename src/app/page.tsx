@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { client } from '../sanity/client'; // Import client Sanity
+import { client } from '../../sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 
 // Tool pembangun URL gambar dari database Sanity
@@ -16,49 +16,45 @@ export default function Home() {
   const [testiIndex, setTestiIndex] = useState(0);
   
   // --- STATE UNTUK MENAMPUNG LIVE DATA DARI SANITY ---
+  const [settingsData, setSettingsData] = useState<any>(null);
   const [servicesData, setServicesData] = useState<any[]>([]);
   const [portfoliosData, setPortfoliosData] = useState<any[]>([]);
   const [testiData, setTestiData] = useState<any[]>([]);
   const [articlesData, setArticlesData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- DATA DUMMY CADANGAN (Akan dipakai jika Sanity masih kosong) ---
+  // --- DATA DUMMY CADANGAN ---
   const dummyServices = [
     { t: "Website Development", d: "Company Profile, eCommerce, LMS, dan Booking Website yang profesional dan scalable.", i: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800", l: "/layanan/website-development" },
     { t: "SEO Optimization", d: "Membangun fondasi SEO on-page dan technical agar tampil di halaman pertama Google.", i: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=800", l: "/layanan/seo" },
-    { t: "Google Ads Management", d: "Setup campaign dan monthly maintenance untuk ROI yang terus meningkat.", i: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800", l: "/layanan/google-ads" },
-    { t: "Meta Ads Management", d: "Beriklan di Facebook & Instagram dengan riset target audience dan konten kreatif.", i: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800", l: "/layanan/meta-ads" },
-    { t: "Social Media Management", d: "Perencanaan konten, desain visual, hingga Reels untuk brand awareness.", i: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800", l: "/layanan/social-media" },
-    { t: "Data Analytics Consulting", d: "Ubah data bisnis yang kompleks menjadi wawasan visual untuk keputusan akurat.", i: "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&w=800", l: "/layanan/data-analytics" }
+    { t: "Google Ads Management", d: "Setup campaign dan monthly maintenance untuk ROI yang terus meningkat.", i: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800", l: "/layanan/google-ads" }
   ];
 
   const dummyPortfolios = [
     { t: "E-Commerce Fashion Retail", c: "Website Dev + SEO", d: "Peningkatan konversi penjualan online hingga 150% dalam 3 bulan.", img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800" },
-    { t: "LMS Platform Corporate", c: "Web Dev", d: "Digitalisasi sistem training karyawan untuk 500+ pengguna aktif.", img: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=800" },
-    { t: "Klinik Estetika Skincare", c: "Digital Ads", d: "Penurunan Cost per Lead (CPL) sebesar 40% dari kampanye sebelumnya.", img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800" }
+    { t: "LMS Platform Corporate", c: "Web Dev", d: "Digitalisasi sistem training karyawan untuk 500+ pengguna aktif.", img: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=800" }
   ];
 
   const dummyTestimonials = [
     { n: "Budi Santoso", p: "Direktur, Retail Corp", t: "Inbeez membantu efisiensi operasional kami naik drastis dengan sistem yang handal.", r: 5 },
-    { n: "Siska Amelia", p: "CMO, Klinik Estetika", t: "ROI iklan Google Ads kami naik tajam. Cost per lead turun 40%!", r: 5 },
-    { n: "Hendra Wijaya", p: "Owner, Villa Group", t: "Booking system yang dibuat Inbeez sangat mulus. Konversi kami naik 200%.", r: 5 }
+    { n: "Siska Amelia", p: "CMO, Klinik Estetika", t: "ROI iklan Google Ads kami naik tajam. Cost per lead turun 40%!", r: 5 }
   ];
 
   const dummyArticles = [
-    { t: "Strategi SEO 2026", d: "Cara mengamankan posisi halaman pertama di tengah gempuran AI.", img: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=800", date: "12 Mei" },
-    { t: "Data Analytics UKM", d: "Gunakan data untuk membuat keputusan manajemen yang akurat.", img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800", date: "05 Mei" },
-    { t: "Google vs Meta Ads", d: "Perbandingan mendalam untuk channel akuisisi yang paling tepat.", img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800", date: "28 Apr" }
+    { t: "Strategi SEO 2026", d: "Cara mengamankan posisi halaman pertama di tengah gempuran AI.", img: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=800", date: "12 Mei" }
   ];
 
   // --- MENGAMBIL DATA DARI SANITY SAAT HALAMAN DIMUAT ---
   useEffect(() => {
     async function fetchData() {
       try {
+        const settings = await client.fetch(`*[_type == "siteSettings"][0]`);
         const services = await client.fetch(`*[_type == "service"][0...6]`);
         const ports = await client.fetch(`*[_type == "portfolio"][0...5]`);
         const testis = await client.fetch(`*[_type == "testimonial"][0...5]`);
         const arts = await client.fetch(`*[_type == "article"] | order(date desc)[0...3]`);
 
+        setSettingsData(settings);
         setServicesData(services);
         setPortfoliosData(ports);
         setTestiData(testis);
@@ -72,8 +68,8 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Memilih data yang akan ditampilkan (prioritaskan Sanity jika isinya cukup, jika tidak pakai dummy)
-  const displayServices = servicesData.length >= 6 ? servicesData : dummyServices;
+  // Memilih data yang akan ditampilkan
+  const displayServices = servicesData.length > 0 ? servicesData : dummyServices;
   const displayPorts = portfoliosData.length > 0 ? portfoliosData : dummyPortfolios;
   const displayTestis = testiData.length > 0 ? testiData : dummyTestimonials;
   const displayArts = articlesData.length > 0 ? articlesData : dummyArticles;
@@ -83,7 +79,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between bg-white scroll-smooth overflow-hidden">
       
-      {/* 1. HEADER & HERO (TETAP SAMA) */}
+      {/* 1. HEADER & HERO */}
       <nav className="w-full bg-white shadow-sm py-4 px-6 md:px-12 flex justify-between items-center sticky top-0 z-50">
         <Link href="/"><Image src="/main-logo-inbeez-id.png" alt="Inbeez.id Logo" width={150} height={40} className="object-contain" priority /></Link>
         <div className="hidden lg:flex space-x-8 font-nunito font-semibold text-neutral-dark items-center">
@@ -97,13 +93,22 @@ export default function Home() {
 
       <section className="relative w-full py-32 px-6 md:px-12 flex flex-col items-center justify-center min-h-[90vh] text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop" alt="Background" fill className="object-cover" priority />
+          <Image 
+            src={settingsData?.heroImage ? urlFor(settingsData.heroImage).url() : "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop"} 
+            alt="Background" fill className="object-cover" priority 
+          />
           <div className="absolute inset-0 bg-primary/85"></div>
         </div>
         <div className="relative z-10 max-w-5xl">
           <div className="inline-block px-4 py-1 bg-secondary/20 rounded-full font-nunito text-sm font-bold tracking-widest mb-6 text-secondary border border-secondary/30 uppercase">PT. AKSELERATOR BISNIS JAGADIGITAL</div>
-          <h1 className="font-poppins text-5xl md:text-7xl font-bold mb-8 text-white leading-tight text-balance">Dominasi Pasar dengan <br/><span className="text-secondary">Ekosistem Digital</span></h1>
-          <p className="font-nunito text-xl mb-12 text-gray-200 max-w-3xl mx-auto leading-relaxed">Membantu bisnis tumbuh lebih mudah melalui strategi digital, sistem teknologi, dan konten kreatif yang berdampak nyata.</p>
+          {settingsData?.heroTitle ? (
+            <h1 className="font-poppins text-5xl md:text-7xl font-bold mb-8 text-white leading-tight text-balance">{settingsData.heroTitle}</h1>
+          ) : (
+            <h1 className="font-poppins text-5xl md:text-7xl font-bold mb-8 text-white leading-tight text-balance">Dominasi Pasar dengan <br/><span className="text-secondary">Ekosistem Digital</span></h1>
+          )}
+          <p className="font-nunito text-xl mb-12 text-gray-200 max-w-3xl mx-auto leading-relaxed">
+            {settingsData?.heroDescription || "Membantu bisnis tumbuh lebih mudah melalui strategi digital, sistem teknologi, dan konten kreatif yang berdampak nyata."}
+          </p>
           <div className="flex flex-col sm:flex-row gap-5 justify-center font-poppins font-bold">
             <Link href="#kontak" className="bg-secondary text-neutral-black px-10 py-4 rounded-full hover:bg-secondary-light transition shadow-xl text-lg">Mulai Sekarang</Link>
             <Link href="#layanan" className="bg-white/10 backdrop-blur-md border border-white/30 text-white px-10 py-4 rounded-full hover:bg-white hover:text-primary transition text-lg">Eksplorasi Layanan</Link>
@@ -111,7 +116,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. LAYANAN DINAMIS DARI SANITY */}
+      {/* 2. LAYANAN DINAMIS */}
       <section id="layanan" className="w-full py-24 px-6 md:px-12 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -180,9 +185,16 @@ export default function Home() {
                     <div className="text-secondary text-xl mb-4">★★★★★</div>
                     <p className="font-nunito italic text-base mb-6 leading-relaxed line-clamp-4">"{t.quote || t.t}"</p>
                   </div>
-                  <div>
-                    <h5 className="font-poppins font-bold text-lg">{t.name || t.n}</h5>
-                    <p className="text-gray-300 text-xs font-nunito">{t.position || t.p}</p>
+                  <div className="flex items-center gap-4">
+                    {t.clientPhoto && (
+                      <div className="w-12 h-12 relative rounded-full overflow-hidden border-2 border-secondary">
+                        <Image src={urlFor(t.clientPhoto).url()} alt={t.name || "Klien"} fill className="object-cover" />
+                      </div>
+                    )}
+                    <div>
+                      <h5 className="font-poppins font-bold text-lg">{t.name || t.n}</h5>
+                      <p className="text-gray-300 text-xs font-nunito">{t.position || t.p}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -216,16 +228,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. KONTAK & FOOTER (TETAP SAMA) */}
+      {/* 6. KONTAK & FOOTER DINAMIS */}
       <section id="kontak" className="w-full py-24 px-6 md:px-12 bg-gray-50">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20">
           <div>
             <h2 className="font-poppins text-5xl font-bold text-primary mb-8">Siap Berakselerasi?</h2>
             <p className="font-nunito text-lg text-neutral-dark mb-12">PT. Akselerator Bisnis Jagadigital siap menjadi mitra pertumbuhan digital Anda.</p>
             <div className="space-y-8 font-nunito font-semibold text-neutral-dark">
-              <div className="flex items-center group"><div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mr-6 group-hover:bg-primary transition"><svg className="w-6 h-6 text-primary group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>Denpasar, Bali - Indonesia</div>
-              <div className="flex items-center group"><div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mr-6 group-hover:bg-primary transition"><svg className="w-6 h-6 text-primary group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div><a href="mailto:info@inbeez.id" className="hover:text-primary transition">info@inbeez.id</a></div>
-              <div className="flex items-center group"><div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mr-6 group-hover:bg-primary transition"><svg className="w-6 h-6 text-primary group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div><a href="https://wa.me/628131161101" className="hover:text-primary transition">+62 813-116-1101 (Chat)</a></div>
+              <div className="flex items-center group"><div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mr-6 group-hover:bg-primary transition"><svg className="w-6 h-6 text-primary group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>{settingsData?.officeAddress || "Denpasar, Bali - Indonesia"}</div>
+              <div className="flex items-center group"><div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mr-6 group-hover:bg-primary transition"><svg className="w-6 h-6 text-primary group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div><a href={`mailto:${settingsData?.officeEmail || 'info@inbeez.id'}`} className="hover:text-primary transition">{settingsData?.officeEmail || "info@inbeez.id"}</a></div>
+              <div className="flex items-center group"><div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center mr-6 group-hover:bg-primary transition"><svg className="w-6 h-6 text-primary group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div><a href={`https://wa.me/${settingsData?.whatsappNumber || '628131161101'}`} className="hover:text-primary transition">+{settingsData?.whatsappNumber || "62 813-116-1101"} (Chat)</a></div>
             </div>
           </div>
           <div className="bg-white p-12 rounded-[40px] shadow-2xl border border-gray-100">

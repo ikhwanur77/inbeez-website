@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { client } from '../../../sanity/client'; // Import koneksi Sanity
+import { client } from '../../../sanity/client'; 
 import imageUrlBuilder from '@sanity/image-url';
 
 // Tool pembangun URL gambar Sanity
@@ -9,33 +9,38 @@ function urlFor(source: any) {
   return builder.image(source);
 }
 
-// --- FUNGSI SEO OTOMATIS (DYNAMIC METADATA) ---
+// --- FUNGSI SEO OTOMATIS MEMBACA DARI SANITY ---
 export async function generateMetadata({ params }: any) {
-  const resolvedParams = await params; // FIX UNTUK NEXT.JS 15
+  const resolvedParams = await params; 
   const slug = resolvedParams.slug;
+  const targetLink = `/layanan/${slug}`;
   
-  // Mengubah format URL "website-development" menjadi "Website Development" untuk Title SEO
+  // Tarik data spesifik layanan berdasarkan URL
+  const serviceData = await client.fetch(`*[_type == "service" && link == $targetLink][0]`, { targetLink });
+  
+  // Fallback title jika metaTitle belum diisi di admin
   const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
   
   return {
-    title: `${formattedTitle} | Inbeez.id Digital Growth Partner`,
-    description: `Tingkatkan performa bisnis Anda dengan layanan ${formattedTitle} dari Inbeez.id. Solusi digital berbasis data dan teroptimasi penuh.`,
+    title: serviceData?.seoGroup?.metaTitle || `${formattedTitle} | Inbeez.id Digital Growth Partner`,
+    description: serviceData?.seoGroup?.metaDescription || `Tingkatkan performa bisnis Anda dengan layanan ${formattedTitle} dari Inbeez.id.`,
+    keywords: serviceData?.seoGroup?.focusKeyword || ""
   };
 }
 
 // --- KOMPONEN UTAMA HALAMAN ---
 export default async function ServiceDetail({ params }: any) {
-  const resolvedParams = await params; // FIX UNTUK NEXT.JS 15
+  const resolvedParams = await params; 
   const slug = resolvedParams.slug;
-  const targetLink = `/layanan/${slug}`; // Contoh: /layanan/website-development
+  const targetLink = `/layanan/${slug}`; 
 
-  // 1. Tarik data secara live dari Sanity berdasarkan URL
+  // 1. Tarik data secara live dari Sanity
   const serviceData = await client.fetch(`*[_type == "service" && link == $targetLink][0]`, { targetLink });
 
-  // 2. Siapkan Data Fallback (Jika data belum diinput di CMS Admin, tetap tampilkan desain cantik)
+  // 2. Siapkan Data Fallback
   const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
   const title = serviceData?.title || formattedTitle;
-  const description = serviceData?.description || "Deskripsi lengkap untuk layanan ini belum ditambahkan. Silakan lengkapi melalui Sanity Studio untuk melihat perubahannya di sini secara real-time.";
+  const description = serviceData?.description || "Deskripsi lengkap untuk layanan ini belum ditambahkan. Silakan lengkapi melalui Sanity Studio.";
   const imageSrc = serviceData?.image ? urlFor(serviceData.image).url() : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop";
 
   return (
