@@ -1,106 +1,223 @@
-import Image from 'next/image';
+"use client";
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { client } from '../../../sanity/client'; 
 import imageUrlBuilder from '@sanity/image-url';
 
-// Tool pembangun URL gambar Sanity
+// 1. IMPORT HOOK BAHASA DARI CONTEXT
+import { useLanguage } from '@/context/LanguageContext';
+
 const builder = imageUrlBuilder(client);
 function urlFor(source: any) {
   return builder.image(source);
 }
 
-// --- FUNGSI SEO OTOMATIS MEMBACA DARI SANITY ---
-export async function generateMetadata({ params }: any) {
-  const resolvedParams = await params; 
-  const slug = resolvedParams.slug;
-  const targetLink = `/layanan/${slug}`;
+export default function ServiceDetail({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   
-  // Tarik data spesifik layanan berdasarkan URL
-  const serviceData = await client.fetch(`*[_type == "service" && link == $targetLink][0]`, { targetLink });
-  
-  // Fallback title jika metaTitle belum diisi di admin
-  const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-  
-  return {
-    title: serviceData?.seoGroup?.metaTitle || `${formattedTitle} | Inbeez.id Digital Growth Partner`,
-    description: serviceData?.seoGroup?.metaDescription || `Tingkatkan performa bisnis Anda dengan layanan ${formattedTitle} dari Inbeez.id.`,
-    keywords: serviceData?.seoGroup?.focusKeyword || ""
+  // 2. AMBIL BAHASA DARI PUSAT
+  const { lang } = useLanguage();
+
+  const [data, setData] = useState<any>(null);
+  const [relatedPortos, setRelatedPortos] = useState<any[]>([]);
+  const [relatedTestis, setRelatedTestis] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // --- HELPER TEKS BILINGUAL ---
+  const getTxt = (obj: any, fallback: string = "") => {
+    if (!obj) return fallback;
+    return obj[lang] || obj['id'] || fallback;
   };
-}
 
-// --- KOMPONEN UTAMA HALAMAN ---
-export default async function ServiceDetail({ params }: any) {
-  const resolvedParams = await params; 
-  const slug = resolvedParams.slug;
-  const targetLink = `/layanan/${slug}`; 
+  // --- FUNGSI PINTAR: OTOMATIS MENGECILKAN FONT JIKA TEKS PANJANG ---
+  const getDynamicTitleClass = (text: string, type: 'hero' | 'card') => {
+    if (!text) return "";
+    if (type === 'hero') {
+      if (text.length > 40) return "text-3xl md:text-4xl lg:text-5xl";
+      if (text.length > 25) return "text-4xl md:text-5xl";
+      return "text-4xl md:text-6xl";
+    } else {
+      if (text.length > 35) return "text-base tracking-tight leading-tight";
+      if (text.length > 22) return "text-lg tracking-tight leading-tight";
+      return "text-xl leading-tight";
+    }
+  };
 
-  // 1. Tarik data secara live dari Sanity
-  const serviceData = await client.fetch(`*[_type == "service" && link == $targetLink][0]`, { targetLink });
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const service = await client.fetch(
+          `*[_type == "service" && (slug.id.current == $slug || slug.en.current == $slug)][0]`, 
+          { slug }
+        );
 
-  // 2. Siapkan Data Fallback
-  const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-  const title = serviceData?.title || formattedTitle;
-  const description = serviceData?.description || "Deskripsi lengkap untuk layanan ini belum ditambahkan. Silakan lengkapi melalui Sanity Studio.";
-  const imageSrc = serviceData?.image ? urlFor(serviceData.image).url() : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop";
+        if (service) {
+          setData(service);
+          
+          const portos = await client.fetch(
+            `*[_type == "portfolio" && references($id)][0...3]`, 
+            { id: service._id }
+          );
+          const testis = await client.fetch(
+            `*[_type == "testimonial" && references($id)][0...3]`, 
+            { id: service._id }
+          );
+
+          setRelatedPortos(portos);
+          setRelatedTestis(testis);
+        }
+      } catch (error) {
+        console.error("Gagal memuat detail layanan:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [slug]);
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="font-poppins font-bold text-primary animate-pulse">Loading Detail...</div></div>;
+
+  const titleText = getTxt(data?.title, "Detail Layanan");
+  const description = getTxt(data?.description, "Informasi lengkap mengenai layanan kami akan segera tersedia.");
+  const imageSrc = data?.image ? urlFor(data.image).url() : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2000";
+
+  // --- LOGIKA GRID FLEKSIBEL ---
+  const subServicesCount = data?.subServices?.length || 0;
+  const gridContainerClass = subServicesCount === 1 
+    ? "grid-cols-1 max-w-2xl mx-auto" 
+    : subServicesCount === 2 
+    ? "grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto" 
+    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto";
 
   return (
     <main className="min-h-screen bg-white font-nunito flex flex-col">
-      {/* --- Header Ringkas --- */}
-      <nav className="w-full bg-white shadow-sm py-4 px-6 md:px-12 flex justify-between items-center sticky top-0 z-50">
-        <Link href="/">
-          <Image src="/main-logo-inbeez-id.png" alt="Inbeez.id Logo" width={150} height={40} className="object-contain" priority />
-        </Link>
-        <Link href="/#layanan" className="font-poppins font-bold text-primary border-b-2 border-transparent hover:border-primary transition">
-          ← Kembali ke Beranda
-        </Link>
-      </nav>
-
-      {/* --- Hero Section Layanan --- */}
-      <section className="relative w-full py-24 px-6 md:px-12 bg-primary text-white overflow-hidden">
-        <div className="absolute inset-0 z-0 opacity-20">
-          <Image src={imageSrc} alt={title} fill className="object-cover grayscale" />
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <span className="text-secondary font-bold tracking-widest uppercase mb-4 block text-sm">Layanan Spesialis Inbeez</span>
-          <h1 className="font-poppins text-4xl md:text-6xl font-bold mb-6">{title}</h1>
-          <p className="text-lg md:text-xl text-gray-200 leading-relaxed max-w-2xl mx-auto">
-            {description}
-          </p>
+      
+      {/* 2. HERO SECTION LAYANAN */}
+      <section className="relative w-full py-24 px-6 md:px-12 bg-primary text-white">
+        <div className="absolute inset-0 opacity-20"><Image src={imageSrc} alt="Hero" fill className="object-cover grayscale" /></div>
+        <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
+          <h1 className={`font-poppins font-bold mb-6 transition-all duration-300 ${getDynamicTitleClass(titleText, 'hero')}`}>
+            {titleText}
+          </h1>
+          <p className="text-lg text-gray-200 max-w-2xl mx-auto text-balance">{description}</p>
         </div>
       </section>
 
-      {/* --- Konten Detail & CTA --- */}
-      <section className="w-full py-24 px-6 md:px-12 bg-white">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-16 items-center">
-           {/* Gambar Kiri */}
-           <div className="w-full md:w-1/2 relative h-[450px] rounded-[40px] overflow-hidden shadow-2xl group">
-             <Image src={imageSrc} alt={title} fill className="object-cover group-hover:scale-105 transition duration-700" />
-           </div>
-           
-           {/* Teks Kanan */}
-           <div className="w-full md:w-1/2">
-             <h2 className="font-poppins text-4xl font-bold text-primary mb-6 leading-tight">Tingkatkan Performa Bisnis Anda</h2>
-             <p className="text-neutral-dark mb-8 leading-relaxed text-lg">
-               Sebagai Konsultan Bisnis Digital, kami memastikan implementasi <strong>{title}</strong> ini tidak hanya berfungsi secara teknis, namun dirancang khusus untuk menghasilkan pertumbuhan revenue yang nyata dan selaras dengan SOP perusahaan Anda.
-             </p>
-             
-             {/* Benefit List */}
-             <ul className="space-y-5 mb-10 text-neutral-dark font-semibold">
-               <li className="flex items-center"><div className="w-8 h-8 bg-secondary/20 rounded-full flex items-center justify-center mr-4"><span className="text-secondary text-lg">✓</span></div> Strategi Berbasis Data & Analitik</li>
-               <li className="flex items-center"><div className="w-8 h-8 bg-secondary/20 rounded-full flex items-center justify-center mr-4"><span className="text-secondary text-lg">✓</span></div> Teroptimasi Penuh untuk SEO</li>
-               <li className="flex items-center"><div className="w-8 h-8 bg-secondary/20 rounded-full flex items-center justify-center mr-4"><span className="text-secondary text-lg">✓</span></div> Laporan Performa Transparan</li>
-             </ul>
+      {/* 3. SUB LAYANAN GRID FLEKSIBEL */}
+      {data?.subServices && (
+        <section className="w-full py-24 px-6 md:px-12 bg-gray-50">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="font-poppins text-3xl font-bold text-primary mb-12 text-center">
+              {lang === 'id' ? 'Pilihan Layanan' : 'Service Options'}
+            </h2>
+            
+            {/* Grid Container dengan logika fleksibel */}
+            <div className={`grid gap-8 items-stretch ${gridContainerClass}`}>
+              {data.subServices.map((sub: any, i: number) => {
+                const subTitleText = getTxt(sub.title);
+                
+                return (
+                  <div key={i} className="bg-white p-8 rounded-[35px] shadow-sm border border-gray-100 hover:shadow-xl transition flex flex-col group overflow-hidden">
+                    
+                    {/* Bagian Gambar */}
+                    <div className="w-full h-56 relative rounded-2xl overflow-hidden mb-8 bg-gray-100 flex-shrink-0">
+                      {sub.image ? (
+                        <Image 
+                          src={urlFor(sub.image).url()} 
+                          alt={getTxt(sub.image?.alt, subTitleText)} 
+                          fill 
+                          className="object-cover group-hover:scale-105 transition duration-700" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-2xl">
+                          {lang === 'id' ? 'Ilustrasi Belum Tersedia' : 'Illustration Not Available'}
+                        </div>
+                      )}
+                    </div>
 
-             <Link href="/#kontak" className="inline-block bg-secondary text-neutral-black font-poppins font-bold px-10 py-4 rounded-full hover:bg-secondary-light transition shadow-xl text-lg">
-               Konsultasi Gratis Sekarang
-             </Link>
-           </div>
-        </div>
-      </section>
+                    {/* Judul Sub-Layanan: Rata Tengah */}
+                    <h3 className={`font-poppins font-bold text-primary mb-4 transition-all duration-300 text-center ${getDynamicTitleClass(subTitleText, 'card')}`}>
+                      {subTitleText}
+                    </h3>
+                    
+                    {/* Deskripsi: Rata Tengah */}
+                    <p className="text-neutral-dark mb-8 text-sm leading-relaxed text-center">
+                      {getTxt(sub.description)}
+                    </p>
 
-      {/* --- Footer Singkat --- */}
-      <footer className="w-full bg-gray-50 border-t border-gray-100 py-10 px-6 text-center mt-auto">
-        <p className="text-gray-400 text-sm font-medium font-nunito">© 2026 PT. Akselerator Bisnis Jagadigital. All rights reserved.</p>
+                    {/* Label: Yang Anda Dapatkan */}
+                    <div className="mb-4 text-xs font-bold uppercase tracking-widest text-secondary border-b border-gray-100 pb-2">
+                      {lang === 'id' ? 'Yang Anda Dapatkan' : 'What You Get'}
+                    </div>
+                    
+                    {/* Fitur Utama */}
+                    <ul className="mb-10 space-y-3 flex-grow">
+                      {sub.features?.map((f: any, j: number) => (
+                        <li key={j} className="flex items-start text-sm font-semibold text-neutral-dark">
+                          <span className="text-secondary mr-3 flex-shrink-0 mt-0.5">✓</span> 
+                          <span className="leading-tight">{getTxt(f)}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Tombol CTA */}
+                    <a 
+                      href={`https://wa.me/628131161101?text=${encodeURIComponent(getTxt(sub.waDefaultText, "Halo Inbeez..."))}`}
+                      target="_blank"
+                      className="w-full bg-secondary text-neutral-black text-center font-poppins font-bold py-4 rounded-2xl hover:bg-secondary-light transition mt-auto flex-shrink-0"
+                    >
+                      {lang === 'id' ? 'Konsultasi via WhatsApp' : 'Consult via WhatsApp'}
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 4. PORTOFOLIO TERKAIT */}
+      {relatedPortos.length > 0 && (
+        <section className="w-full py-24 px-6 md:px-12 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="font-poppins text-3xl font-bold text-primary mb-12">{lang === 'id' ? 'Hasil Kerja Kami' : 'Our Work Results'}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {relatedPortos.map((p: any, i: number) => (
+                <Link key={i} href={`/portofolio/${p.slug?.[lang]?.current || p.slug?.id?.current}`} className="relative h-80 rounded-[30px] overflow-hidden group">
+                  <Image src={p.image ? urlFor(p.image).url() : ""} alt="Porto" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/60 p-6 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition">
+                    <h4 className="text-white font-bold">{p.title}</h4>
+                    <p className="text-gray-300 text-xs">{getTxt(p.description)}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 5. TESTIMONI TERKAIT */}
+      {relatedTestis.length > 0 && (
+        <section className="w-full py-24 px-6 md:px-12 bg-primary text-white">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="font-poppins text-3xl font-bold mb-12 text-center">{lang === 'id' ? 'Kepuasan Klien' : 'Client Success'}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {relatedTestis.map((t: any, i: number) => (
+                <div key={i} className="bg-white/10 p-8 rounded-[30px] border border-white/10">
+                  <p className="italic text-sm mb-6">"{getTxt(t.quote)}"</p>
+                  <h5 className="font-bold">{t.name}</h5>
+                  <p className="text-gray-400 text-xs">{getTxt(t.position)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FOOTER */}
+      <footer className="w-full py-12 text-center border-t mt-auto">
+        <p className="text-gray-400 text-sm">© 2026 PT. Akselerator Bisnis Jagadigital.</p>
       </footer>
     </main>
   );
