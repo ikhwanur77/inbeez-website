@@ -8,9 +8,9 @@ import MaintenanceScreen from '@/components/MaintenanceScreen'
 // 1. IMPORT PROVIDER, NAVBAR, & SCROLL HELPER
 import { LanguageProvider } from '@/context/LanguageContext'
 import Navbar from '@/components/Navbar'
-import ScrollToTop from '@/components/ScrollToTop' // Pastikan file ini sudah dibuat di src/components/
+import ScrollToTop from '@/components/ScrollToTop' 
 
-// 👇 2. IMPORT GOOGLE ANALYTICS
+// 2. IMPORT GOOGLE ANALYTICS
 import { GoogleAnalytics } from '@next/third-parties/google'
 
 // --- GENERATE METADATA (SEO Dinamis) ---
@@ -67,17 +67,18 @@ export default async function RootLayout({
 
   return (
     <html lang="id" className="scroll-smooth">
+      {/* 👇 OPTIMASI KECEPATAN: Membuka jalur DNS ke Sanity lebih awal */}
+      <head>
+        <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
+      </head>
+
       <body className="antialiased text-neutral-dark">
         <LanguageProvider>
           {isMaintenance ? (
-            /* Mode Maintenance Aktif */
             <MaintenanceScreen settings={settings} />
           ) : (
-            /* Mode Website Normal */
             <>
-              {/* 👇 Penjaga posisi scroll saat pindah halaman */}
               <ScrollToTop /> 
-              
               <Navbar />
               <div className="min-h-screen">
                 {children}
@@ -88,7 +89,7 @@ export default async function RootLayout({
         </LanguageProvider>
       </body>
       
-      {/* 👇 Google Analytics ID dari Inbeez.id */}
+      {/* Google Analytics ID */}
       <GoogleAnalytics gaId="G-DYZQS8L0BP" />
       
     </html>

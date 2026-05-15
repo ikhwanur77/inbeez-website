@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { client } from '../sanity/client'; 
 import imageUrlBuilder from '@sanity/image-url';
 
-// 1. IMPORT HOOK BAHASA DARI CONTEXT
 import { useLanguage } from '@/context/LanguageContext';
 
 const builder = imageUrlBuilder(client);
@@ -17,10 +16,8 @@ export default function Home() {
   const [portIndex, setPortIndex] = useState(0);
   const [testiIndex, setTestiIndex] = useState(0);
   
-  // 2. AMBIL BAHASA DARI PUSAT
   const { lang } = useLanguage();
 
-  // --- STATE DATA SANITY ---
   const [settingsData, setSettingsData] = useState<any>(null);
   const [servicesData, setServicesData] = useState<any[]>([]);
   const [portfoliosData, setPortfoliosData] = useState<any[]>([]);
@@ -28,10 +25,8 @@ export default function Home() {
   const [articlesData, setArticlesData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 👇 STATE BARU UNTUK STATUS PENGIRIMAN EMAIL
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  // --- HELPER UNTUK MENGAMBIL TEKS SESUAI BAHASA ---
   const getTxt = (obj: any, fallback: string = "") => {
     if (!obj) return fallback;
     return obj[lang] || obj['id'] || fallback;
@@ -60,12 +55,10 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // 👇 FUNGSI PENGIRIM EMAIL KE API KITA
   async function handleContactSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus('loading');
 
-    // Mengambil data dari form menggunakan atribut "name"
     const formData = new FormData(e.currentTarget);
     const data = {
       name: formData.get('name'),
@@ -82,9 +75,7 @@ export default function Home() {
 
       if (res.ok) {
         setStatus('success');
-        (e.target as HTMLFormElement).reset(); // Kosongkan form setelah sukses
-        
-        // Kembalikan ke state awal setelah 5 detik
+        (e.target as HTMLFormElement).reset(); 
         setTimeout(() => {
           setStatus('idle');
         }, 5000);
@@ -110,7 +101,15 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative w-full py-32 px-6 md:px-12 flex flex-col items-center justify-center min-h-[90vh] text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image src={settingsData?.heroImage ? urlFor(settingsData.heroImage).url() : "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070"} alt="Background" fill className="object-cover" priority />
+          {/* 👇 OPTIMASI GAMBAR HERO (WebP, Max Width, Sizes) */}
+          <Image 
+            src={settingsData?.heroImage ? urlFor(settingsData.heroImage).width(1920).format('webp').url() : "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1920&fm=webp"} 
+            alt="Background" 
+            fill 
+            sizes="100vw"
+            className="object-cover" 
+            priority 
+          />
           <div className="absolute inset-0 bg-primary/85"></div>
         </div>
         <div className="relative z-10 max-w-5xl">
@@ -142,7 +141,14 @@ export default function Home() {
             {displayServices.map((s: any, i: number) => (
               <div key={i} className="bg-white rounded-[30px] shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition duration-500 group flex flex-col">
                 <div className="w-full h-48 relative overflow-hidden">
-                  <Image src={s.image ? urlFor(s.image).url() : "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800"} alt={getTxt(s.image?.alt, "Layanan")} fill className="object-cover group-hover:scale-105 transition duration-700" />
+                  {/* 👇 OPTIMASI GAMBAR LAYANAN (WebP, Max Width, Sizes) */}
+                  <Image 
+                    src={s.image ? urlFor(s.image).width(800).format('webp').url() : "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&fm=webp"} 
+                    alt={getTxt(s.image?.alt, "Layanan")} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+                    className="object-cover group-hover:scale-105 transition duration-700" 
+                  />
                 </div>
                 <div className="p-8 flex flex-col flex-grow">
                   <h3 className="font-poppins text-xl font-bold text-primary mb-3">{getTxt(s.title)}</h3>
@@ -179,7 +185,14 @@ export default function Home() {
             <div className="flex gap-6 md:gap-8 transition-transform duration-500 ease-out" style={{ transform: `translateX(calc(-${portIndex * 33.3333}% - ${portIndex * 0.6667}rem))` }}>
               {displayPorts.map((p: any, i: number) => (
                 <div key={i} className="min-w-[90%] md:min-w-[calc(33.333%-1.33rem)] relative h-[380px] md:h-[420px] rounded-[30px] overflow-hidden group shadow-lg">
-                  <Image src={p.image ? urlFor(p.image).url() : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800"} alt={getTxt(p.image?.alt, "Portfolio")} fill className="object-cover group-hover:scale-105 transition duration-700" />
+                  {/* 👇 OPTIMASI GAMBAR PORTOFOLIO (WebP, Max Width, Sizes) */}
+                  <Image 
+                    src={p.image ? urlFor(p.image).width(800).format('webp').url() : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&fm=webp"} 
+                    alt={getTxt(p.image?.alt, "Portfolio")} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                    className="object-cover group-hover:scale-105 transition duration-700" 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent p-6 md:p-8 flex flex-col justify-end">
                     <h4 className="text-white font-poppins text-lg md:text-xl font-bold leading-tight mb-2 md:mb-3">{p.title}</h4>
                     <p className="text-gray-300 font-nunito text-xs md:text-sm line-clamp-2">{getTxt(p.description)}</p>
@@ -244,7 +257,14 @@ export default function Home() {
             {displayArts.map((a: any, i: number) => (
               <div key={i} className="bg-gray-50 rounded-[30px] overflow-hidden border border-gray-100 flex flex-col group hover:shadow-xl transition duration-500">
                 <div className="h-48 md:h-56 relative overflow-hidden bg-gray-200">
-                  <Image src={a.image ? urlFor(a.image).url() : "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=800"} alt={getTxt(a.image?.alt, "Artikel")} fill className="object-cover group-hover:scale-105 transition duration-700" />
+                  {/* 👇 OPTIMASI GAMBAR ARTIKEL (WebP, Max Width, Sizes) */}
+                  <Image 
+                    src={a.image ? urlFor(a.image).width(800).format('webp').url() : "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=800&fm=webp"} 
+                    alt={getTxt(a.image?.alt, "Artikel")} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+                    className="object-cover group-hover:scale-105 transition duration-700" 
+                  />
                   <div className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs font-bold text-primary">
                     {a.publishedAt ? new Date(a.publishedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : "Terbaru"}
                   </div>
