@@ -30,17 +30,19 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
     return obj[lang] || obj['id'] || fallback;
   };
 
-  // --- FUNGSI PINTAR: OTOMATIS MENGECILKAN FONT JIKA TEKS PANJANG ---
+  // --- FUNGSI PINTAR (DIPERBAIKI UNTUK MOBILE) ---
   const getDynamicTitleClass = (text: string, type: 'hero' | 'card') => {
     if (!text) return "";
     if (type === 'hero') {
-      if (text.length > 40) return "text-3xl md:text-4xl lg:text-5xl";
-      if (text.length > 25) return "text-4xl md:text-5xl";
-      return "text-4xl md:text-6xl";
+      // Perbaikan: Ukuran default (mobile) dikecilkan
+      if (text.length > 40) return "text-2xl md:text-4xl lg:text-5xl";
+      if (text.length > 25) return "text-3xl md:text-5xl";
+      return "text-3xl md:text-6xl";
     } else {
-      if (text.length > 35) return "text-base tracking-tight leading-tight";
-      if (text.length > 22) return "text-lg tracking-tight leading-tight";
-      return "text-xl leading-tight";
+      // Perbaikan: Kartu layanan juga ikut dikecilkan di mobile
+      if (text.length > 35) return "text-sm md:text-base tracking-tight leading-tight";
+      if (text.length > 22) return "text-base md:text-lg tracking-tight leading-tight";
+      return "text-lg md:text-xl leading-tight";
     }
   };
 
@@ -94,34 +96,37 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
     <main className="min-h-screen bg-white font-nunito flex flex-col">
       
       {/* 2. HERO SECTION LAYANAN */}
-      <section className="relative w-full py-24 px-6 md:px-12 bg-primary text-white">
+      {/* Perbaikan: Padding top dikurangi sedikit untuk layar HP */}
+      <section className="relative w-full py-16 md:py-24 px-6 md:px-12 bg-primary text-white">
         <div className="absolute inset-0 opacity-20"><Image src={imageSrc} alt="Hero" fill className="object-cover grayscale" /></div>
         <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
-          <h1 className={`font-poppins font-bold mb-6 transition-all duration-300 ${getDynamicTitleClass(titleText, 'hero')}`}>
+          <h1 className={`font-poppins font-bold mb-4 md:mb-6 transition-all duration-300 ${getDynamicTitleClass(titleText, 'hero')}`}>
             {titleText}
           </h1>
-          <p className="text-lg text-gray-200 max-w-2xl mx-auto text-balance">{description}</p>
+          {/* Perbaikan: Ukuran text deskripsi diubah ke text-base md:text-lg */}
+          <p className="text-base md:text-lg text-gray-200 max-w-2xl mx-auto text-balance">{description}</p>
         </div>
       </section>
 
       {/* 3. SUB LAYANAN GRID FLEKSIBEL */}
       {data?.subServices && (
-        <section className="w-full py-24 px-6 md:px-12 bg-gray-50">
+        <section className="w-full py-16 md:py-24 px-6 md:px-12 bg-gray-50">
           <div className="max-w-7xl mx-auto">
-            <h2 className="font-poppins text-3xl font-bold text-primary mb-12 text-center">
+            {/* Perbaikan: Ukuran judul diubah ke text-2xl md:text-3xl */}
+            <h2 className="font-poppins text-2xl md:text-3xl font-bold text-primary mb-8 md:mb-12 text-center">
               {lang === 'id' ? 'Pilihan Layanan' : 'Service Options'}
             </h2>
             
             {/* Grid Container dengan logika fleksibel */}
-            <div className={`grid gap-8 items-stretch ${gridContainerClass}`}>
+            <div className={`grid gap-6 md:gap-8 items-stretch ${gridContainerClass}`}>
               {data.subServices.map((sub: any, i: number) => {
                 const subTitleText = getTxt(sub.title);
                 
                 return (
-                  <div key={i} className="bg-white p-8 rounded-[35px] shadow-sm border border-gray-100 hover:shadow-xl transition flex flex-col group overflow-hidden">
+                  <div key={i} className="bg-white p-6 md:p-8 rounded-[24px] md:rounded-[35px] shadow-sm border border-gray-100 hover:shadow-xl transition flex flex-col group overflow-hidden">
                     
                     {/* Bagian Gambar */}
-                    <div className="w-full h-56 relative rounded-2xl overflow-hidden mb-8 bg-gray-100 flex-shrink-0">
+                    <div className="w-full h-48 md:h-56 relative rounded-2xl overflow-hidden mb-6 md:mb-8 bg-gray-100 flex-shrink-0">
                       {sub.image ? (
                         <Image 
                           src={urlFor(sub.image).url()} 
@@ -130,19 +135,19 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
                           className="object-cover group-hover:scale-105 transition duration-700" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-2xl">
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-200 rounded-2xl text-center px-4">
                           {lang === 'id' ? 'Ilustrasi Belum Tersedia' : 'Illustration Not Available'}
                         </div>
                       )}
                     </div>
 
                     {/* Judul Sub-Layanan: Rata Tengah */}
-                    <h3 className={`font-poppins font-bold text-primary mb-4 transition-all duration-300 text-center ${getDynamicTitleClass(subTitleText, 'card')}`}>
+                    <h3 className={`font-poppins font-bold text-primary mb-3 md:mb-4 transition-all duration-300 text-center ${getDynamicTitleClass(subTitleText, 'card')}`}>
                       {subTitleText}
                     </h3>
                     
                     {/* Deskripsi: Rata Tengah */}
-                    <p className="text-neutral-dark mb-8 text-sm leading-relaxed text-center">
+                    <p className="text-neutral-dark mb-6 md:mb-8 text-sm md:text-base leading-relaxed text-center">
                       {getTxt(sub.description)}
                     </p>
 
@@ -152,10 +157,10 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
                     </div>
                     
                     {/* Fitur Utama */}
-                    <ul className="mb-10 space-y-3 flex-grow">
+                    <ul className="mb-8 md:mb-10 space-y-3 flex-grow">
                       {sub.features?.map((f: any, j: number) => (
-                        <li key={j} className="flex items-start text-sm font-semibold text-neutral-dark">
-                          <span className="text-secondary mr-3 flex-shrink-0 mt-0.5">✓</span> 
+                        <li key={j} className="flex items-start text-sm md:text-base font-semibold text-neutral-dark">
+                          <span className="text-secondary mr-3 flex-shrink-0 mt-0.5 md:mt-0">✓</span> 
                           <span className="leading-tight">{getTxt(f)}</span>
                         </li>
                       ))}
@@ -165,7 +170,7 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
                     <a 
                       href={`https://wa.me/628131161101?text=${encodeURIComponent(getTxt(sub.waDefaultText, "Halo Inbeez..."))}`}
                       target="_blank"
-                      className="w-full bg-secondary text-neutral-black text-center font-poppins font-bold py-4 rounded-2xl hover:bg-secondary-light transition mt-auto flex-shrink-0"
+                      className="w-full bg-secondary text-neutral-black text-center font-poppins font-bold py-3 md:py-4 rounded-xl md:rounded-2xl hover:bg-secondary-light transition mt-auto flex-shrink-0 text-sm md:text-base"
                     >
                       {lang === 'id' ? 'Konsultasi via WhatsApp' : 'Consult via WhatsApp'}
                     </a>
@@ -179,12 +184,12 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
 
       {/* 4. PORTOFOLIO TERKAIT */}
       {relatedPortos.length > 0 && (
-        <section className="w-full py-24 px-6 md:px-12 bg-white">
+        <section className="w-full py-16 md:py-24 px-6 md:px-12 bg-white">
           <div className="max-w-7xl mx-auto">
-            <h2 className="font-poppins text-3xl font-bold text-primary mb-12">{lang === 'id' ? 'Hasil Kerja Kami' : 'Our Work Results'}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <h2 className="font-poppins text-2xl md:text-3xl font-bold text-primary mb-8 md:mb-12">{lang === 'id' ? 'Hasil Kerja Kami' : 'Our Work Results'}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {relatedPortos.map((p: any, i: number) => (
-                <Link key={i} href={`/portofolio/${p.slug?.[lang]?.current || p.slug?.id?.current}`} className="relative h-80 rounded-[30px] overflow-hidden group">
+                <Link key={i} href={`/portofolio/${p.slug?.[lang]?.current || p.slug?.id?.current}`} className="relative h-64 md:h-80 rounded-[24px] md:rounded-[30px] overflow-hidden group">
                   <Image src={p.image ? urlFor(p.image).url() : ""} alt="Porto" fill className="object-cover" />
                   <div className="absolute inset-0 bg-black/60 p-6 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition">
                     <h4 className="text-white font-bold">{p.title}</h4>
@@ -199,15 +204,15 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
 
       {/* 5. TESTIMONI TERKAIT */}
       {relatedTestis.length > 0 && (
-        <section className="w-full py-24 px-6 md:px-12 bg-primary text-white">
+        <section className="w-full py-16 md:py-24 px-6 md:px-12 bg-primary text-white">
           <div className="max-w-7xl mx-auto">
-            <h2 className="font-poppins text-3xl font-bold mb-12 text-center">{lang === 'id' ? 'Kepuasan Klien' : 'Client Success'}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <h2 className="font-poppins text-2xl md:text-3xl font-bold mb-8 md:mb-12 text-center">{lang === 'id' ? 'Kepuasan Klien' : 'Client Success'}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {relatedTestis.map((t: any, i: number) => (
-                <div key={i} className="bg-white/10 p-8 rounded-[30px] border border-white/10">
-                  <p className="italic text-sm mb-6">"{getTxt(t.quote)}"</p>
+                <div key={i} className="bg-white/10 p-6 md:p-8 rounded-[24px] md:rounded-[30px] border border-white/10">
+                  <p className="italic text-sm md:text-base mb-6">"{getTxt(t.quote)}"</p>
                   <h5 className="font-bold">{t.name}</h5>
-                  <p className="text-gray-400 text-xs">{getTxt(t.position)}</p>
+                  <p className="text-gray-400 text-xs md:text-sm">{getTxt(t.position)}</p>
                 </div>
               ))}
             </div>
@@ -215,9 +220,12 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
         </section>
       )}
 
-      {/* FOOTER */}
-      <footer className="w-full py-12 text-center border-t mt-auto">
-        <p className="text-gray-400 text-sm">© 2026 PT. Akselerator Bisnis Jagadigital.</p>
+      {/* FOOTER - Perbaikan Padding Bawah Khusus Mobile dan Ukuran Font 10px */}
+      <footer className="w-full bg-white border-t border-gray-100 pt-12 pb-28 md:pb-12 px-2 md:px-6 text-center font-nunito mt-auto">
+        <Image src="/main-logo-inbeez-id.png" alt="Inbeez Logo" width={140} height={40} className="mx-auto mb-6 md:mb-8 opacity-40 grayscale" />
+        <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm font-medium tracking-tighter sm:tracking-normal whitespace-nowrap md:whitespace-normal">
+          © 2026 PT. Akselerator Bisnis Jagadigital. All rights reserved.
+        </p>
       </footer>
     </main>
   );

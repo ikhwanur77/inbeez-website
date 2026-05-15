@@ -3,11 +3,14 @@ import type { Metadata } from 'next'
 import './globals.css'
 import WhatsAppPopup from '@/components/WhatsAppPopup'
 import { client } from '@/sanity/client' 
-import MaintenanceScreen from '@/components/MaintenanceScreen' // 👈 Import komponen maintenance
+import MaintenanceScreen from '@/components/MaintenanceScreen' 
 
 // 1. IMPORT PROVIDER & NAVBAR
 import { LanguageProvider } from '@/context/LanguageContext'
 import Navbar from '@/components/Navbar'
+
+// 👇 2. IMPORT GOOGLE ANALYTICS DARI PACKAGE RESMI
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 // 2. GENERATE METADATA (SEO Dinamis - Berjalan di Server)
 export async function generateMetadata(): Promise<Metadata> {
@@ -81,6 +84,10 @@ export default async function RootLayout({
           )}
         </LanguageProvider>
       </body>
+      
+      {/* 👇 3. PASANG KOMPONEN GA DI SINI (Di luar tag body, di dalam tag html) */}
+      <GoogleAnalytics gaId="G-DYZQS8L0BP" />
+      
     </html>
   )
 }

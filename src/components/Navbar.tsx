@@ -11,6 +11,10 @@ export default function Navbar() {
   const [services, setServices] = useState<any[]>([]);
   const pathname = usePathname(); // Ambil URL saat ini
 
+  // 👇 STATE KHUSUS MOBILE MENU
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
+
   // Helper untuk menampilkan teks bilingual
   const getTxt = (obj: any, fallback: string = "") => {
     if (!obj) return fallback;
@@ -29,7 +33,13 @@ export default function Navbar() {
     fetchNavbarData();
   }, []);
 
-  // 👇 LOGIKA PENTING: Sembunyikan Navbar jika url berawalan "/studio" ATAU "/review"
+  // 👇 Tutup menu mobile otomatis setiap kali pindah halaman
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsMobileServicesOpen(false);
+  }, [pathname]);
+
+  // LOGIKA PENTING: Sembunyikan Navbar jika url berawalan "/studio" ATAU "/review"
   if (pathname.startsWith('/studio') || pathname.startsWith('/review')) {
     return null;
   }
@@ -43,6 +53,7 @@ export default function Navbar() {
 
   return (
     <nav className="w-full bg-white shadow-sm py-4 px-6 md:px-12 flex justify-between items-center sticky top-0 z-50">
+      
       {/* --- LOGO --- */}
       <Link href="/">
         <Image 
@@ -55,7 +66,9 @@ export default function Navbar() {
         />
       </Link>
 
-      {/* --- MENU DESKTOP --- */}
+      {/* =========================================
+          MENU DESKTOP (Hidden di Layar Kecil)
+      ============================================= */}
       <div className="hidden lg:flex space-x-8 font-nunito font-semibold text-neutral-dark items-center">
         <Link href="/" className="hover:text-primary transition">Home</Link>
         
@@ -80,21 +93,10 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Link Portofolio (Bukan Dropdown) */}
-        <Link href="/portofolio" className="hover:text-primary transition">
-          Portfolio
-        </Link>
-
-        {/* Link Standar */}
-        <Link href="/tentang-kami" className="hover:text-primary transition">
-          {lang === 'id' ? 'Tentang Kami' : 'About Us'}
-        </Link>
-        <Link href="/testimoni" className="hover:text-primary transition">
-          {lang === 'id' ? 'Testimoni' : 'Testimonials'}
-        </Link>
-        <Link href="/artikel" className="hover:text-primary transition">
-          {lang === 'id' ? 'Artikel' : 'Articles'}
-        </Link>
+        <Link href="/portofolio" className="hover:text-primary transition">Portfolio</Link>
+        <Link href="/tentang-kami" className="hover:text-primary transition">{lang === 'id' ? 'Tentang Kami' : 'About Us'}</Link>
+        <Link href="/testimoni" className="hover:text-primary transition">{lang === 'id' ? 'Testimoni' : 'Testimonials'}</Link>
+        <Link href="/artikel" className="hover:text-primary transition">{lang === 'id' ? 'Artikel' : 'Articles'}</Link>
         
         {/* Toggle Bahasa */}
         <div className="flex items-center gap-3 border-l-2 border-gray-200 pl-8 ml-2">
@@ -113,7 +115,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Tombol CTA Utama (Direct to WhatsApp) */}
+        {/* Tombol CTA Utama */}
         <a 
           href={waLink}
           target="_blank"
@@ -123,6 +125,87 @@ export default function Navbar() {
           {lang === 'id' ? 'Konsultasi Gratis' : 'Free Consultation'}
         </a>
       </div>
+
+      {/* =========================================
+          TOMBOL HAMBURGER (Mobile Saja)
+      ============================================= */}
+      <button 
+        className="lg:hidden text-primary p-2 focus:outline-none"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle Mobile Menu"
+      >
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {isMobileMenuOpen ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> // Icon X
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /> // Icon Garis Tiga
+          )}
+        </svg>
+      </button>
+
+      {/* =========================================
+          PANEL MENU MOBILE
+      ============================================= */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-2xl flex flex-col py-6 px-6 lg:hidden max-h-[85vh] overflow-y-auto font-nunito font-semibold text-neutral-dark gap-4">
+          <Link href="/" className="pb-3 border-b border-gray-50 hover:text-primary transition">Home</Link>
+          
+          {/* Akordeon Layanan Mobile */}
+          <div className="flex flex-col border-b border-gray-50 pb-3">
+            <button 
+              onClick={() => setIsMobileServicesOpen(!isMobileServicesOpen)}
+              className="flex justify-between items-center w-full text-left hover:text-primary transition"
+            >
+              {lang === 'id' ? 'Layanan' : 'Services'}
+              <svg className={`w-4 h-4 transition-transform duration-300 ${isMobileServicesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            
+            {/* Sub-menu Layanan (Dropdown Mobile) */}
+            {isMobileServicesOpen && (
+              <div className="flex flex-col pl-4 mt-3 border-l-2 border-primary/20 space-y-3">
+                <Link href="/layanan" className="text-primary font-bold text-sm">Lihat Semua Layanan</Link>
+                {services.map((s, i) => (
+                  <Link key={i} href={`/layanan/${s.slug?.[lang]?.current || s.slug?.id?.current}`} className="text-sm font-medium hover:text-primary transition">
+                    {getTxt(s.title)}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Link href="/portofolio" className="pb-3 border-b border-gray-50 hover:text-primary transition">Portfolio</Link>
+          <Link href="/tentang-kami" className="pb-3 border-b border-gray-50 hover:text-primary transition">{lang === 'id' ? 'Tentang Kami' : 'About Us'}</Link>
+          <Link href="/testimoni" className="pb-3 border-b border-gray-50 hover:text-primary transition">{lang === 'id' ? 'Testimoni' : 'Testimonials'}</Link>
+          <Link href="/artikel" className="pb-3 border-b border-gray-50 hover:text-primary transition">{lang === 'id' ? 'Artikel' : 'Articles'}</Link>
+          
+          {/* Toggle Bahasa Mobile */}
+          <div className="flex items-center gap-4 py-2">
+            <span className="text-sm text-gray-500 font-medium">{lang === 'id' ? 'Bahasa:' : 'Language:'}</span>
+            <button 
+              onClick={() => setLang('id')} 
+              className={`font-poppins text-sm px-4 py-1.5 rounded-full transition-all ${lang === 'id' ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+            >
+              ID
+            </button>
+            <button 
+              onClick={() => setLang('en')} 
+              className={`font-poppins text-sm px-4 py-1.5 rounded-full transition-all ${lang === 'en' ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+            >
+              EN
+            </button>
+          </div>
+
+          {/* CTA Mobile */}
+          <a 
+            href={waLink} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="mt-4 bg-primary text-white px-6 py-4 rounded-full text-center hover:bg-primary-light transition shadow-md font-poppins text-sm font-bold"
+          >
+            {lang === 'id' ? 'Konsultasi Gratis Sekarang' : 'Free Consultation Now'}
+          </a>
+        </div>
+      )}
     </nav>
   );
 }

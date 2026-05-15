@@ -28,18 +28,18 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
     return obj[lang] || obj['id'] || fallback;
   };
 
-  // --- FUNGSI PINTAR: OTOMATIS MENGECILKAN FONT JIKA TEKS PANJANG ---
+  // --- FUNGSI PINTAR: DIPERBAIKI UNTUK MOBILE ---
   const getDynamicTitleClass = (text: string) => {
     if (!text) return "";
-    if (text.length > 40) return "text-3xl md:text-4xl lg:text-5xl";
-    if (text.length > 25) return "text-4xl md:text-5xl";
-    return "text-4xl md:text-6xl";
+    // Ukuran mobile dikecilkan (text-2xl atau text-3xl)
+    if (text.length > 40) return "text-2xl md:text-4xl lg:text-5xl";
+    if (text.length > 25) return "text-3xl md:text-5xl";
+    return "text-3xl md:text-6xl";
   };
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // Ambil Porto berdasarkan slug ID atau EN, lengkap dengan judul kategori layanannya
         const portfolio = await client.fetch(
           `*[_type == "portfolio" && (slug.id.current == $slug || slug.en.current == $slug)][0]{
             ...,
@@ -69,37 +69,38 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
   return (
     <main className="min-h-screen bg-white font-nunito flex flex-col">
       
-      {/* NAVBAR LAMA DIHAPUS DARI SINI (Sudah ditangani oleh layout.tsx) */}
-
       {/* 2. HERO SECTION PORTOFOLIO */}
-      <section className="w-full pt-20 pb-10 px-6 md:px-12 bg-white text-center max-w-5xl mx-auto mt-8">
-        <div className="inline-block px-4 py-1.5 bg-secondary/20 rounded-full font-nunito text-xs font-bold tracking-widest mb-6 text-secondary border border-secondary/30 uppercase">
+      {/* Perbaikan: Padding dan Margin disesuaikan untuk layar sempit */}
+      <section className="w-full pt-16 md:pt-20 pb-8 md:pb-10 px-6 md:px-12 bg-white text-center max-w-5xl mx-auto mt-4 md:mt-8">
+        <div className="inline-block px-4 py-1.5 bg-secondary/20 rounded-full font-nunito text-[10px] md:text-xs font-bold tracking-widest mb-4 md:mb-6 text-secondary border border-secondary/30 uppercase">
           {category}
         </div>
-        {/* Judul dengan ukuran font dinamis */}
-        <h1 className={`font-poppins font-bold mb-8 text-primary leading-tight text-balance transition-all duration-300 ${getDynamicTitleClass(title)}`}>
+        <h1 className={`font-poppins font-bold mb-4 md:mb-8 text-primary leading-tight text-balance transition-all duration-300 ${getDynamicTitleClass(title)}`}>
           {title}
         </h1>
-        <p className="text-lg text-neutral-dark max-w-3xl mx-auto leading-relaxed">{description}</p>
+        {/* Perbaikan: text-base untuk mobile, text-lg untuk desktop */}
+        <p className="text-base md:text-lg text-neutral-dark max-w-3xl mx-auto leading-relaxed">{description}</p>
       </section>
 
       {/* 3. FOTO UTAMA & DETAIL */}
-      <section className="w-full px-6 md:px-12 max-w-7xl mx-auto mb-16">
-        <div className="relative w-full h-[400px] md:h-[700px] rounded-[40px] overflow-hidden shadow-2xl">
+      {/* Perbaikan: Tinggi gambar disesuaikan (h-64) dan sudut tidak terlalu membulat di mobile */}
+      <section className="w-full px-4 md:px-12 max-w-7xl mx-auto mb-12 md:mb-16">
+        <div className="relative w-full h-64 md:h-[600px] lg:h-[700px] rounded-[24px] md:rounded-[40px] overflow-hidden shadow-xl md:shadow-2xl">
           <Image src={mainImage} alt={title} fill className="object-cover" priority />
         </div>
       </section>
 
       {/* 4. GALLERY SECTION (Opsional) */}
       {gallery.length > 0 && (
-        <section className="w-full py-16 px-6 md:px-12 bg-gray-50">
+        <section className="w-full py-12 md:py-16 px-6 md:px-12 bg-gray-50">
           <div className="max-w-7xl mx-auto">
-            <h2 className="font-poppins text-3xl font-bold text-primary mb-12 text-center">
+            {/* Perbaikan: Ukuran judul diperkecil di mobile */}
+            <h2 className="font-poppins text-2xl md:text-3xl font-bold text-primary mb-8 md:mb-12 text-center">
               {lang === 'id' ? 'Galeri Proyek' : 'Project Gallery'}
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {gallery.map((img: any, i: number) => (
-                <div key={i} className="relative h-80 rounded-[30px] overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-500">
+                <div key={i} className="relative h-64 md:h-80 rounded-[20px] md:rounded-[30px] overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-500">
                   <Image src={urlFor(img).url()} alt={`Gallery ${i}`} fill className="object-cover hover:scale-105 transition-transform duration-700" />
                 </div>
               ))}
@@ -109,36 +110,38 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
       )}
 
       {/* 5. CTA SECTION */}
-      <section className="w-full py-24 px-6 md:px-12 bg-white text-center flex-grow">
-        <div className="max-w-3xl mx-auto bg-primary p-12 rounded-[50px] shadow-2xl relative overflow-hidden">
-          {/* Efek Visual Background */}
+      {/* Perbaikan: Padding wadah dan ukuran teks disesuaikan untuk mobile */}
+      <section className="w-full py-16 md:py-24 px-4 md:px-12 bg-white text-center flex-grow">
+        <div className="max-w-3xl mx-auto bg-primary p-8 md:p-12 rounded-[30px] md:rounded-[50px] shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full -mr-10 -mt-10"></div>
           
-          <h2 className="font-poppins text-3xl md:text-4xl font-bold text-white mb-6 relative z-10">
+          <h2 className="font-poppins text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6 relative z-10 text-balance">
             {lang === 'id' ? 'Ingin Hasil Seperti Ini?' : 'Want Results Like This?'}
           </h2>
-          <p className="text-gray-300 mb-10 font-nunito leading-relaxed relative z-10">
+          <p className="text-sm md:text-base text-gray-300 mb-8 md:mb-10 font-nunito leading-relaxed relative z-10 text-balance">
             {lang === 'id' 
               ? 'Mari diskusikan bagaimana kami bisa mengimplementasikan strategi serupa untuk pertumbuhan bisnis Anda.' 
               : 'Let’s discuss how we can implement similar strategies for your business growth.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center relative z-10">
             {data?.ctaLink && (
-              <a href={data.ctaLink} target="_blank" rel="noopener noreferrer" className="bg-white text-primary px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition shadow-lg w-full sm:w-auto">
+              <a href={data.ctaLink} target="_blank" rel="noopener noreferrer" className="bg-white text-primary px-6 md:px-8 py-3.5 md:py-4 rounded-full font-bold hover:bg-gray-100 transition shadow-lg w-full sm:w-auto text-sm md:text-base">
                 {lang === 'id' ? 'Lihat Website Live' : 'View Live Website'}
               </a>
             )}
-            <Link href="/#kontak" className="bg-secondary text-neutral-black px-8 py-4 rounded-full font-bold hover:bg-secondary-light transition shadow-lg w-full sm:w-auto">
+            <Link href="/#kontak" className="bg-secondary text-neutral-black px-6 md:px-8 py-3.5 md:py-4 rounded-full font-bold hover:bg-secondary-light transition shadow-lg w-full sm:w-auto text-sm md:text-base">
               {lang === 'id' ? 'Konsultasi Sekarang' : 'Consult Now'}
             </Link>
           </div>
         </div>
       </section>
 
-      {/* FOOTER - DISAMAKAN DENGAN HALAMAN LAINNYA */}
-      <footer className="w-full bg-white border-t border-gray-100 py-12 px-6 text-center font-nunito mt-auto">
-        <Image src="/main-logo-inbeez-id.png" alt="Inbeez Logo" width={140} height={40} className="mx-auto mb-8 opacity-40 grayscale" />
-        <p className="text-gray-400 text-sm font-medium">© 2026 PT. Akselerator Bisnis Jagadigital. All rights reserved.</p>
+      {/* FOOTER - Perbaikan Padding Bawah Khusus Mobile dan Ukuran Font 10px */}
+      <footer className="w-full bg-white border-t border-gray-100 pt-12 pb-28 md:pb-12 px-2 md:px-6 text-center font-nunito mt-auto">
+        <Image src="/main-logo-inbeez-id.png" alt="Inbeez Logo" width={140} height={40} className="mx-auto mb-6 md:mb-8 opacity-40 grayscale" />
+        <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm font-medium tracking-tighter sm:tracking-normal whitespace-nowrap md:whitespace-normal">
+          © 2026 PT. Akselerator Bisnis Jagadigital. All rights reserved.
+        </p>
       </footer>
     </main>
   );
