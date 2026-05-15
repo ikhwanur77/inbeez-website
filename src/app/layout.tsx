@@ -5,14 +5,15 @@ import WhatsAppPopup from '@/components/WhatsAppPopup'
 import { client } from '@/sanity/client' 
 import MaintenanceScreen from '@/components/MaintenanceScreen' 
 
-// 1. IMPORT PROVIDER & NAVBAR
+// 1. IMPORT PROVIDER, NAVBAR, & SCROLL HELPER
 import { LanguageProvider } from '@/context/LanguageContext'
 import Navbar from '@/components/Navbar'
+import ScrollToTop from '@/components/ScrollToTop' // Pastikan file ini sudah dibuat di src/components/
 
-// 👇 2. IMPORT GOOGLE ANALYTICS DARI PACKAGE RESMI
+// 👇 2. IMPORT GOOGLE ANALYTICS
 import { GoogleAnalytics } from '@next/third-parties/google'
 
-// 2. GENERATE METADATA (SEO Dinamis - Berjalan di Server)
+// --- GENERATE METADATA (SEO Dinamis) ---
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const settings = await client.fetch(`*[_type == "siteSettings"][0]`);
@@ -46,13 +47,12 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-// 3. ROOT LAYOUT (Struktur Utama Website)
+// --- ROOT LAYOUT ---
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // --- LOGIKA MAINTENANCE ---
   // Tarik status maintenance dari Sanity
   const settings = await client.fetch(`
     *[_type == "siteSettings"][0]{ 
@@ -70,11 +70,14 @@ export default async function RootLayout({
       <body className="antialiased text-neutral-dark">
         <LanguageProvider>
           {isMaintenance ? (
-            /* Jika mode maintenance ON, hanya tampilkan layar pemeliharaan */
+            /* Mode Maintenance Aktif */
             <MaintenanceScreen settings={settings} />
           ) : (
-            /* Jika mode maintenance OFF, tampilkan website normal */
+            /* Mode Website Normal */
             <>
+              {/* 👇 Penjaga posisi scroll saat pindah halaman */}
+              <ScrollToTop /> 
+              
               <Navbar />
               <div className="min-h-screen">
                 {children}
@@ -85,7 +88,7 @@ export default async function RootLayout({
         </LanguageProvider>
       </body>
       
-      {/* 👇 3. PASANG KOMPONEN GA DI SINI (Di luar tag body, di dalam tag html) */}
+      {/* 👇 Google Analytics ID dari Inbeez.id */}
       <GoogleAnalytics gaId="G-DYZQS8L0BP" />
       
     </html>
