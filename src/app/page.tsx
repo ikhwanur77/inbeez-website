@@ -2,7 +2,9 @@
 import { client } from '@/sanity/client';
 import HomeClient from '@/components/HomeClient';
 
-// INI ADALAH SERVER COMPONENT (Tidak ada "use client", sangat ramah SEO)
+// 👇 JURUS PAMUNGKAS: Memaksa Next.js untuk selalu mengambil data paling fresh dari Sanity (Bypass Cache)
+export const revalidate = 0; 
+
 export default async function Home() {
   
   // Ambil data di sisi Server (0 Detik Loading di HP klien)

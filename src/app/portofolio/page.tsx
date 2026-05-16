@@ -70,7 +70,6 @@ export default function PortfolioCatalog() {
           <div className="inline-block px-4 py-1.5 bg-secondary/20 rounded-full text-xs font-bold tracking-widest mb-6 text-secondary border border-secondary/30 uppercase">
             {lang === 'id' ? 'Karya Kami' : 'Our Work'}
           </div>
-          {/* Perbaikan 1: Ukuran judul Hero dikecilkan untuk mobile (text-3xl atau text-4xl) */}
           <h1 className="font-poppins text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-primary leading-tight text-balance">
             {getTxt(settingsData?.sectionPortoTitle, lang === 'id' ? "Bukti Pertumbuhan Nyata" : "Real Growth Evidence")}
           </h1>
@@ -80,13 +79,13 @@ export default function PortfolioCatalog() {
         </div>
       </section>
 
-      {/* 3. FILTER BUTTONS */}
-      {/* Perbaikan 2: Tambah pb-4 untuk memberikan ruang agar nyaman di scroll di mobile */}
+      {/* 3. FILTER BUTTONS (SLIDER MENYAMPING) */}
       <section className="w-full py-6 px-4 md:px-12 bg-white sticky top-[72px] z-40 border-b border-gray-100 pb-4 md:pb-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-2 md:gap-3">
+        {/* 👇 PERBAIKAN: Menggunakan flex-nowrap & overflow-x-auto, serta menyembunyikan scrollbar */}
+        <div className="max-w-7xl mx-auto flex overflow-x-auto gap-2 md:gap-3 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <button 
             onClick={() => setActiveFilter('all')}
-            className={`px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === 'all' ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
+            className={`whitespace-nowrap flex-shrink-0 px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === 'all' ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
           >
             {lang === 'id' ? 'Semua' : 'All'}
           </button>
@@ -94,7 +93,7 @@ export default function PortfolioCatalog() {
             <button 
               key={s._id}
               onClick={() => setActiveFilter(s._id)}
-              className={`px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === s._id ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
+              className={`whitespace-nowrap flex-shrink-0 px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === s._id ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
             >
               {getTxt(s.title)}
             </button>
@@ -132,7 +131,6 @@ export default function PortfolioCatalog() {
       {/* 5. CTA SECTION */}
       <section className="w-full py-16 md:py-24 px-4 md:px-12 bg-white">
         <div className="max-w-5xl mx-auto bg-primary rounded-[40px] md:rounded-[50px] p-8 md:p-12 text-center text-white relative overflow-hidden shadow-2xl">
-          {/* Perbaikan 3: Judul CTA dikecilkan untuk mobile agar tidak menumpuk 4 baris */}
           <h2 className="font-poppins text-2xl md:text-4xl lg:text-5xl font-bold mb-6 md:mb-8 relative z-10 text-balance">
             {lang === 'id' ? 'Siap Menciptakan Sukses Berikutnya?' : 'Ready to Create the Next Success?'}
           </h2>
@@ -151,7 +149,7 @@ export default function PortfolioCatalog() {
         </div>
       </section>
 
-      {/* FOOTER - Perbaikan 4: Padding Bawah Khusus Mobile dan Ukuran Font 10px */}
+      {/* FOOTER */}
       <footer className="w-full bg-white border-t border-gray-100 pt-12 pb-28 md:pb-12 px-2 md:px-6 text-center font-nunito mt-auto">
         <Image src="/main-logo-inbeez-id.png" alt="Inbeez Logo" width={140} height={40} className="mx-auto mb-6 md:mb-8 opacity-40 grayscale" />
         <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm font-medium tracking-tighter sm:tracking-normal whitespace-nowrap md:whitespace-normal">
