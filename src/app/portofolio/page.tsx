@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from 'react';
+// 👇 1. Tambahkan useRef di sini
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { client } from '../../sanity/client'; 
@@ -20,7 +21,9 @@ export default function PortfolioCatalog() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- HELPER TEKS BILINGUAL ---
+  // 👇 2. Buat referensi untuk wadah scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const getTxt = (obj: any, fallback: string = "") => {
     if (!obj) return fallback;
     return obj[lang] || obj['id'] || fallback;
@@ -49,6 +52,19 @@ export default function PortfolioCatalog() {
     fetchData();
   }, []);
 
+  // 👇 3. Fungsi untuk menggeser ke kiri dan kanan
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -250, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 250, behavior: 'smooth' });
+    }
+  };
+
   const waNumber = "628131161101"; 
   const waText = lang === 'id' 
     ? "Halo Inbeez, saya melihat portofolio Anda dan tertarik untuk diskusi lebih lanjut mengenai bisnis saya." 
@@ -64,7 +80,7 @@ export default function PortfolioCatalog() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-white scroll-smooth overflow-hidden font-nunito">
       
-      {/* 2. HERO SECTION */}
+      {/* HERO SECTION */}
       <section className="w-full pt-20 md:pt-24 pb-12 px-6 md:px-12 text-center bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="inline-block px-4 py-1.5 bg-secondary/20 rounded-full text-xs font-bold tracking-widest mb-6 text-secondary border border-secondary/30 uppercase">
@@ -79,35 +95,60 @@ export default function PortfolioCatalog() {
         </div>
       </section>
 
-      {/* 3. FILTER BUTTONS (SLIDER MENYAMPING) */}
+      {/* FILTER BUTTONS DENGAN PANAH DESKTOP */}
       <section className="w-full py-6 px-4 md:px-12 bg-white sticky top-[72px] z-40 border-b border-gray-100 pb-4 md:pb-6">
-        {/* 👇 PERBAIKAN: Menggunakan flex-nowrap & overflow-x-auto, serta menyembunyikan scrollbar */}
-        <div className="max-w-7xl mx-auto flex overflow-x-auto gap-2 md:gap-3 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="max-w-7xl mx-auto flex items-center gap-3">
+          
+          {/* 👇 Tombol Kiri (Hanya muncul di Layar Desktop) */}
           <button 
-            onClick={() => setActiveFilter('all')}
-            className={`whitespace-nowrap flex-shrink-0 px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === 'all' ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
+            onClick={scrollLeft} 
+            className="hidden md:flex shrink-0 w-10 h-10 rounded-full border border-gray-200 bg-white items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition shadow-sm"
+            aria-label="Scroll Left"
           >
-            {lang === 'id' ? 'Semua' : 'All'}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
           </button>
-          {servicesData.map((s: any) => (
+
+          {/* Area Kategori (Bisa disentuh di HP, digeser panah di Desktop) */}
+          <div 
+            ref={scrollContainerRef}
+            className="flex overflow-x-auto gap-2 md:gap-3 pb-2 pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full"
+          >
             <button 
-              key={s._id}
-              onClick={() => setActiveFilter(s._id)}
-              className={`whitespace-nowrap flex-shrink-0 px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === s._id ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
+              onClick={() => setActiveFilter('all')}
+              className={`whitespace-nowrap flex-shrink-0 px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === 'all' ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
             >
-              {getTxt(s.title)}
+              {lang === 'id' ? 'Semua Kategori' : 'All Categories'}
             </button>
-          ))}
+            {servicesData.map((s: any) => (
+              <button 
+                key={s._id}
+                onClick={() => setActiveFilter(s._id)}
+                className={`whitespace-nowrap flex-shrink-0 px-5 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${activeFilter === s._id ? 'bg-primary text-white shadow-md' : 'bg-white text-neutral-dark border border-gray-200 hover:border-primary'}`}
+              >
+                {getTxt(s.title)}
+              </button>
+            ))}
+          </div>
+
+          {/* 👇 Tombol Kanan (Hanya muncul di Layar Desktop) */}
+          <button 
+            onClick={scrollRight} 
+            className="hidden md:flex shrink-0 w-10 h-10 rounded-full border border-gray-200 bg-white items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition shadow-sm"
+            aria-label="Scroll Right"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
+
         </div>
       </section>
 
-      {/* 4. PORTOFOLIO GRID */}
-      <section className="w-full py-12 md:py-16 px-6 md:px-12 min-h-[500px] bg-gray-50">
+      {/* PORTOFOLIO GRID */}
+      <section className="w-full py-12 md:py-16 px-6 md:px-12 min-h-[500px] bg-gray-50 flex-grow">
         <div className="max-w-7xl mx-auto">
           {filteredPorts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {filteredPorts.map((p: any, i: number) => (
-                <Link key={i} href={`/portofolio/${p.slug?.[lang]?.current || p.slug?.id?.current}`} className="group relative h-[350px] md:h-[450px] rounded-[30px] md:rounded-[40px] overflow-hidden shadow-lg hover:shadow-2xl transition duration-500">
+                <Link key={i} href={`/portofolio/${p.slug?.[lang]?.current || p.slug?.id?.current}`} className="group relative h-[350px] md:h-[450px] rounded-[30px] md:rounded-[40px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl transition duration-500">
                   <Image 
                     src={p.image ? urlFor(p.image).url() : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800"} 
                     alt={p.title} fill className="object-cover group-hover:scale-110 transition duration-700" 
@@ -128,7 +169,7 @@ export default function PortfolioCatalog() {
         </div>
       </section>
 
-      {/* 5. CTA SECTION */}
+      {/* CTA SECTION */}
       <section className="w-full py-16 md:py-24 px-4 md:px-12 bg-white">
         <div className="max-w-5xl mx-auto bg-primary rounded-[40px] md:rounded-[50px] p-8 md:p-12 text-center text-white relative overflow-hidden shadow-2xl">
           <h2 className="font-poppins text-2xl md:text-4xl lg:text-5xl font-bold mb-6 md:mb-8 relative z-10 text-balance">
@@ -137,7 +178,6 @@ export default function PortfolioCatalog() {
           <p className="text-sm md:text-base text-gray-300 mb-8 md:mb-10 max-w-2xl mx-auto relative z-10 text-balance">
             {lang === 'id' ? 'Mari berkolaborasi membangun ekosistem digital yang kuat untuk bisnis Anda.' : 'Let’s collaborate to build a strong digital ecosystem for your business.'}
           </p>
-          
           <a 
             href={waLink} 
             target="_blank"
