@@ -1,5 +1,4 @@
 "use client";
-// 👇 1. Tambahkan useRef di sini
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -21,7 +20,6 @@ export default function PortfolioCatalog() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
 
-  // 👇 2. Buat referensi untuk wadah scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const getTxt = (obj: any, fallback: string = "") => {
@@ -34,10 +32,14 @@ export default function PortfolioCatalog() {
       try {
         const settings = await client.fetch(`*[_type == "siteSettings"][0]`);
         const services = await client.fetch(`*[_type == "service"] | order(order asc)`);
+        
+        // 👇 Kueri GROQ baru untuk mengambil array kategori
         const ports = await client.fetch(`*[_type == "portfolio"]{
           ...,
-          "catId": serviceCategory._ref,
-          "catTitle": serviceCategory->title
+          "categories": serviceCategory[]->{
+            _id,
+            title
+          }
         }`);
 
         setSettingsData(settings);
@@ -52,7 +54,6 @@ export default function PortfolioCatalog() {
     fetchData();
   }, []);
 
-  // 👇 3. Fungsi untuk menggeser ke kiri dan kanan
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: -250, behavior: 'smooth' });
@@ -71,9 +72,10 @@ export default function PortfolioCatalog() {
     : "Hello Inbeez, I saw your portfolio and am interested in discussing further about my business.";
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(waText)}`;
 
+  // 👇 Logika filter baru untuk mencocokkan array kategori
   const filteredPorts = activeFilter === 'all' 
     ? portfoliosData 
-    : portfoliosData.filter(p => p.catId === activeFilter);
+    : portfoliosData.filter(p => p.categories && p.categories.some((c: any) => c._id === activeFilter));
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="font-poppins font-bold text-primary animate-pulse">Memuat Portofolio...</div></div>;
 
@@ -95,11 +97,9 @@ export default function PortfolioCatalog() {
         </div>
       </section>
 
-      {/* FILTER BUTTONS DENGAN PANAH DESKTOP */}
+      {/* FILTER BUTTONS */}
       <section className="w-full py-6 px-4 md:px-12 bg-white sticky top-[72px] z-40 border-b border-gray-100 pb-4 md:pb-6">
         <div className="max-w-7xl mx-auto flex items-center gap-3">
-          
-          {/* 👇 Tombol Kiri (Hanya muncul di Layar Desktop) */}
           <button 
             onClick={scrollLeft} 
             className="hidden md:flex shrink-0 w-10 h-10 rounded-full border border-gray-200 bg-white items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition shadow-sm"
@@ -108,7 +108,6 @@ export default function PortfolioCatalog() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
           </button>
 
-          {/* Area Kategori (Bisa disentuh di HP, digeser panah di Desktop) */}
           <div 
             ref={scrollContainerRef}
             className="flex overflow-x-auto gap-2 md:gap-3 pb-2 pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full"
@@ -130,7 +129,6 @@ export default function PortfolioCatalog() {
             ))}
           </div>
 
-          {/* 👇 Tombol Kanan (Hanya muncul di Layar Desktop) */}
           <button 
             onClick={scrollRight} 
             className="hidden md:flex shrink-0 w-10 h-10 rounded-full border border-gray-200 bg-white items-center justify-center text-gray-500 hover:text-primary hover:border-primary transition shadow-sm"
@@ -138,7 +136,6 @@ export default function PortfolioCatalog() {
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
           </button>
-
         </div>
       </section>
 
@@ -154,7 +151,10 @@ export default function PortfolioCatalog() {
                     alt={p.title} fill className="object-cover group-hover:scale-110 transition duration-700" 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent p-6 md:p-10 flex flex-col justify-end translate-y-2 md:translate-y-4 group-hover:translate-y-0 transition duration-500">
-                    <span className="text-secondary font-bold tracking-widest uppercase mb-2 md:mb-3 text-[10px] md:text-xs">{getTxt(p.catTitle)}</span>
+                    {/* 👇 Teks kategori sekarang otomatis digabung dengan koma jika lebih dari 1 */}
+                    <span className="text-secondary font-bold tracking-widest uppercase mb-2 md:mb-3 text-[10px] md:text-xs">
+                      {p.categories ? p.categories.map((c: any) => getTxt(c.title)).join(' • ') : 'Uncategorized'}
+                    </span>
                     <h3 className="text-white font-poppins text-xl md:text-2xl font-bold leading-tight mb-2 md:mb-4">{p.title}</h3>
                     <p className="text-gray-300 text-xs md:text-sm line-clamp-2 opacity-90 md:opacity-0 md:group-hover:opacity-100 transition duration-500">{getTxt(p.description)}</p>
                   </div>
@@ -188,8 +188,6 @@ export default function PortfolioCatalog() {
           </a>
         </div>
       </section>
-
-      {/* FOOTER */}
     </main>
   );
 }

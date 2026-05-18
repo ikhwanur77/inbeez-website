@@ -173,7 +173,11 @@ export const schema: { types: SchemaTypeDefinition[] } = {
       fields: [
         { name: 'title', title: 'Judul Project', type: 'string' },
         { name: 'slug', title: 'URL Slug', type: 'localeSlug' }, 
-        { name: 'serviceCategory', title: 'Kategori', type: 'reference', to: [{ type: 'service' }] },
+        { name: 'serviceCategory',
+          title: 'Kategori Layanan', 
+          type: 'array', 
+          of: [{ type: 'reference', to: [{ type: 'service' }] }],
+          description: 'Anda bisa memilih lebih dari 1 layanan untuk klien ini.'},
         { name: 'description', title: 'Deskripsi Project', type: 'localeText' },
         { name: 'image', title: 'Foto Utama Project', ...imageFields },
         
