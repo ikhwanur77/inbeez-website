@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { client } from '../../../sanity/client'; 
 import imageUrlBuilder from '@sanity/image-url';
 
-// 👇 1. IMPORT HOOK BAHASA DARI CONTEXT
+// 1. IMPORT HOOK BAHASA DARI CONTEXT
 import { useLanguage } from '@/context/LanguageContext';
 
 const builder = imageUrlBuilder(client);
@@ -16,7 +16,7 @@ function urlFor(source: any) {
 export default function PortfolioDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   
-  // 👇 2. AMBIL BAHASA DARI PUSAT
+  // 2. AMBIL BAHASA DARI PUSAT
   const { lang } = useLanguage();
   
   const [data, setData] = useState<any>(null);
@@ -64,13 +64,14 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
   const category = getTxt(data?.serviceTitle, "General Project");
   const description = getTxt(data?.description, "Informasi project akan segera diperbarui.");
   const mainImage = data?.image ? urlFor(data.image).url() : "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2000";
+  // 👇 Data Logo Klien (Akan null jika belum di-upload di Sanity)
+  const clientLogo = data?.clientLogo ? urlFor(data.clientLogo).url() : null; 
   const gallery = data?.gallery || [];
 
   return (
     <main className="min-h-screen bg-white font-nunito flex flex-col">
       
       {/* 2. HERO SECTION PORTOFOLIO */}
-      {/* Perbaikan: Padding dan Margin disesuaikan untuk layar sempit */}
       <section className="w-full pt-16 md:pt-20 pb-8 md:pb-10 px-6 md:px-12 bg-white text-center max-w-5xl mx-auto mt-4 md:mt-8">
         <div className="inline-block px-4 py-1.5 bg-secondary/20 rounded-full font-nunito text-[10px] md:text-xs font-bold tracking-widest mb-4 md:mb-6 text-secondary border border-secondary/30 uppercase">
           {category}
@@ -78,12 +79,27 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
         <h1 className={`font-poppins font-bold mb-4 md:mb-8 text-primary leading-tight text-balance transition-all duration-300 ${getDynamicTitleClass(title)}`}>
           {title}
         </h1>
-        {/* Perbaikan: text-base untuk mobile, text-lg untuk desktop */}
         <p className="text-base md:text-lg text-neutral-dark max-w-3xl mx-auto leading-relaxed">{description}</p>
+
+        {/* 👇 TEMPAT LOGO KLIEN DITAMPILKAN 👇 */}
+        {clientLogo && (
+          <div className="mt-8 md:mt-12 flex flex-col items-center justify-center animate-fade-in">
+            <p className="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-widest mb-3">
+              {lang === 'id' ? 'Klien Kami' : 'Our Client'}
+            </p>
+            <div className="relative w-32 h-16 md:w-40 md:h-20 opacity-60 hover:opacity-100 grayscale hover:grayscale-0 transition-all duration-500">
+              <Image 
+                src={clientLogo} 
+                alt={`${title} Client Logo`} 
+                fill 
+                className="object-contain" 
+              />
+            </div>
+          </div>
+        )}
       </section>
 
       {/* 3. FOTO UTAMA & DETAIL */}
-      {/* Perbaikan: Tinggi gambar disesuaikan (h-64) dan sudut tidak terlalu membulat di mobile */}
       <section className="w-full px-4 md:px-12 max-w-7xl mx-auto mb-12 md:mb-16">
         <div className="relative w-full h-64 md:h-[600px] lg:h-[700px] rounded-[24px] md:rounded-[40px] overflow-hidden shadow-xl md:shadow-2xl">
           <Image src={mainImage} alt={title} fill className="object-cover" priority />
@@ -94,7 +110,6 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
       {gallery.length > 0 && (
         <section className="w-full py-12 md:py-16 px-6 md:px-12 bg-gray-50">
           <div className="max-w-7xl mx-auto">
-            {/* Perbaikan: Ukuran judul diperkecil di mobile */}
             <h2 className="font-poppins text-2xl md:text-3xl font-bold text-primary mb-8 md:mb-12 text-center">
               {lang === 'id' ? 'Galeri Proyek' : 'Project Gallery'}
             </h2>
@@ -110,7 +125,6 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
       )}
 
       {/* 5. CTA SECTION */}
-      {/* Perbaikan: Padding wadah dan ukuran teks disesuaikan untuk mobile */}
       <section className="w-full py-16 md:py-24 px-4 md:px-12 bg-white text-center flex-grow">
         <div className="max-w-3xl mx-auto bg-primary p-8 md:p-12 rounded-[30px] md:rounded-[50px] shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full -mr-10 -mt-10"></div>
@@ -136,13 +150,7 @@ export default function PortfolioDetail({ params }: { params: Promise<{ slug: st
         </div>
       </section>
 
-      {/* FOOTER - Perbaikan Padding Bawah Khusus Mobile dan Ukuran Font 10px */}
-      <footer className="w-full bg-white border-t border-gray-100 pt-12 pb-28 md:pb-12 px-2 md:px-6 text-center font-nunito mt-auto">
-        <Image src="/main-logo-inbeez-id.png" alt="Inbeez Logo" width={140} height={40} className="mx-auto mb-6 md:mb-8 opacity-40 grayscale" />
-        <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm font-medium tracking-tighter sm:tracking-normal whitespace-nowrap md:whitespace-normal">
-          © 2026 PT. Akselerator Bisnis Jagadigital. All rights reserved.
-        </p>
-      </footer>
+      {/* FOOTER */}
     </main>
   );
 }

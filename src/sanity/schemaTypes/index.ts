@@ -165,6 +165,31 @@ export const schema: { types: SchemaTypeDefinition[] } = {
         { name: 'slug', title: 'URL Slug', type: 'localeSlug' }, 
         { name: 'serviceCategory', title: 'Kategori', type: 'reference', to: [{ type: 'service' }] },
         { name: 'description', title: 'Deskripsi Project', type: 'localeText' },
+        // --- 3. PORTOFOLIO ---
+    {
+      name: 'portfolio',
+      title: 'Portofolio Klien',
+      type: 'document',
+      fields: [
+        { name: 'title', title: 'Judul Project', type: 'string' },
+        { name: 'slug', title: 'URL Slug', type: 'localeSlug' }, 
+        { name: 'serviceCategory', title: 'Kategori', type: 'reference', to: [{ type: 'service' }] },
+        { name: 'description', title: 'Deskripsi Project', type: 'localeText' },
+        { name: 'image', title: 'Foto Utama Project', ...imageFields },
+        
+        // 👇 INI DIA TAMBAHAN KOLOM LOGO KLIEN 👇
+        { 
+          name: 'clientLogo', 
+          title: 'Logo Klien (Opsional)', 
+          description: 'Upload logo perusahaan klien. Disarankan format PNG transparan.',
+          ...imageFields 
+        },
+        
+        { name: 'gallery', title: 'Gallery Project', type: 'array', of: [{ ...imageFields }] },
+        { name: 'ctaLink', title: 'Link Referensi', type: 'string' },
+        ...seoFields 
+      ]
+    },
         { name: 'image', title: 'Foto Utama Project', ...imageFields },
         { name: 'gallery', title: 'Gallery Project', type: 'array', of: [{ ...imageFields }] },
         { name: 'ctaLink', title: 'Link Referensi', type: 'string' },

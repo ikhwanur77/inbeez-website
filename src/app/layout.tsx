@@ -4,6 +4,7 @@ import './globals.css'
 import WhatsAppPopup from '@/components/WhatsAppPopup'
 import { client } from '@/sanity/client' 
 import MaintenanceScreen from '@/components/MaintenanceScreen' 
+import Footer from '@/components/Footer';
 
 // 1. IMPORT PROVIDER, NAVBAR, & SCROLL HELPER
 import { LanguageProvider } from '@/context/LanguageContext'
@@ -72,7 +73,8 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
       </head>
 
-      <body className="antialiased text-neutral-dark">
+      {/* 👇 1. MANTRA ANTI-WARNING DITAMBAHKAN DI SINI 👇 */}
+      <body className="antialiased text-neutral-dark" suppressHydrationWarning={true}>
         <LanguageProvider>
           {isMaintenance ? (
             <MaintenanceScreen settings={settings} />
@@ -84,6 +86,9 @@ export default async function RootLayout({
                 {children}
               </div>
               <WhatsAppPopup />
+              
+              {/* 👇 2. KOMPONEN FOOTER GLOBAL DITAMBAHKAN DI SINI 👇 */}
+              <Footer />
             </>
           )}
         </LanguageProvider>
