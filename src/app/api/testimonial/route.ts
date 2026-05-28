@@ -11,7 +11,6 @@ const writeClient = createClient({
 
 export async function POST(req: Request) {
   try {
-    // Kita menerima data dalam bentuk FormData karena ada kemungkinan unggah Foto
     const formData = await req.formData();
     
     const name = formData.get('name') as string;
@@ -21,22 +20,23 @@ export async function POST(req: Request) {
     const serviceIds = formData.getAll('serviceIds') as string[];
     const photo = formData.get('photo') as File | null;
 
-    // 1. Jika ada foto, kita upload dulu ke server penyimpan aset Sanity
     let imageAsset = null;
     if (photo && photo.size > 0) {
-      imageAsset = await writeClient.assets.upload('image', photo, {
+      // 👇 PERBAIKAN: Ubah File menjadi Buffer agar bisa dibaca server
+      const bytes = await photo.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
+      imageAsset = await writeClient.assets.upload('image', buffer, {
         filename: photo.name
       });
     }
 
-    // 2. Format layanan multi-select menjadi array references Sanity
     const serviceReferences = serviceIds.map(id => ({
-      _key: crypto.randomUUID(), // Sanity butuh key unik untuk list array
+      _key: crypto.randomUUID(),
       _type: 'reference',
       _ref: id
     }));
 
-    // 3. Susun dokumen testimoni (Gunakan 'drafts.' agar butuh Approval Admin)
     const doc: any = {
       _type: 'testimonial',
       _id: `drafts.${crypto.randomUUID()}`,
@@ -47,7 +47,6 @@ export async function POST(req: Request) {
       serviceCategory: serviceReferences,
     };
 
-    // Sisipkan referensi foto jika berhasil diupload
     if (imageAsset) {
       doc.clientPhoto = {
         _type: 'image',
@@ -55,12 +54,11 @@ export async function POST(req: Request) {
       };
     }
 
-    // 4. Kirim dan simpan ke Database
     await writeClient.createIfNotExists(doc);
 
     return NextResponse.json({ message: 'Success' }, { status: 200 });
-  } catch (error) {
-    console.error("Error API Review:", error);
+  } catch (error: any) {
+    console.error("Error API Review:", error.message || error);
     return NextResponse.json({ message: 'Server Error' }, { status: 500 });
   }
 }
