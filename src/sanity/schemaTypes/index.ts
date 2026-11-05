@@ -1,6 +1,6 @@
 import { type SchemaTypeDefinition } from 'sanity'
 import testimonial from './testimonial'
-import aboutUs from './aboutUs' // 👈 Ini sudah benar
+import aboutUs from './aboutUs'
 
 // =========================================================
 // 1. KOMPONEN BILINGUAL KUSTOM (KOTAK GANDA)
@@ -81,7 +81,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     localeBlock,
     localeSlug,
     testimonial,
-    aboutUs, // 👈 KITA TAMBAHKAN DI SINI AGAR TERBACA OLEH SANITY
+    aboutUs,
 
     // --- 1. SETTINGS BERANDA ---
     {
@@ -155,46 +155,37 @@ export const schema: { types: SchemaTypeDefinition[] } = {
       ]
     },
 
-    // --- 3. PORTOFOLIO ---
+    // --- 3. PORTOFOLIO (SUDAH DIRAPIKAN) ---
     {
       name: 'portfolio',
       title: 'Portofolio Klien',
       type: 'document',
       fields: [
         { name: 'title', title: 'Judul Project', type: 'string' },
-        { name: 'slug', title: 'URL Slug', type: 'localeSlug' }, 
-        { name: 'serviceCategory', title: 'Kategori', type: 'reference', to: [{ type: 'service' }] },
-        { name: 'description', title: 'Deskripsi Project', type: 'localeText' },
-        // --- 3. PORTOFOLIO ---
-    {
-      name: 'portfolio',
-      title: 'Portofolio Klien',
-      type: 'document',
-      fields: [
-        { name: 'title', title: 'Judul Project', type: 'string' },
-        { name: 'slug', title: 'URL Slug', type: 'localeSlug' }, 
-        { name: 'serviceCategory',
+        { 
+          name: 'slug', 
+          title: 'URL Slug', 
+          type: 'object',
+          fields: [
+            { name: 'id', title: '🇮🇩 Slug Indonesia', type: 'slug', options: { source: 'title' } },
+            { name: 'en', title: '🇬🇧 Slug English', type: 'slug', options: { source: 'title' } }
+          ]
+        },
+        { 
+          name: 'serviceCategory',
           title: 'Kategori Layanan', 
           type: 'array', 
           of: [{ type: 'reference', to: [{ type: 'service' }] }],
-          description: 'Anda bisa memilih lebih dari 1 layanan untuk klien ini.'},
+          description: 'Anda bisa memilih lebih dari 1 layanan untuk klien ini.'
+        },
         { name: 'description', title: 'Deskripsi Project', type: 'localeText' },
         { name: 'image', title: 'Foto Utama Project', ...imageFields },
-        
-        // 👇 INI DIA TAMBAHAN KOLOM LOGO KLIEN 👇
         { 
           name: 'clientLogo', 
           title: 'Logo Klien (Opsional)', 
           description: 'Upload logo perusahaan klien. Disarankan format PNG transparan.',
           ...imageFields 
         },
-        
-        { name: 'gallery', title: 'Gallery Project', type: 'array', of: [{ ...imageFields }] },
-        { name: 'ctaLink', title: 'Link Referensi', type: 'string' },
-        ...seoFields 
-      ]
-    },
-        { name: 'image', title: 'Foto Utama Project', ...imageFields },
         { name: 'gallery', title: 'Gallery Project', type: 'array', of: [{ ...imageFields }] },
         { name: 'ctaLink', title: 'Link Referensi', type: 'string' },
         ...seoFields 
